@@ -2,9 +2,10 @@ import os
 from dotenv import load_dotenv
 
 import weaviate
-import json
 
-def store(document):
+load_dotenv()
+
+def store(texts, document_name):
   # Connect to Weaviate
   client = weaviate.Client(
       url = 'https://' + os.getenv("WEAVIATE_HOST"),  # Replace with your endpoint
@@ -29,3 +30,14 @@ def store(document):
   }
 
   client.schema.create_class(class_obj)
+
+  # Configure a batch process
+  with client.batch(
+      batch_size=100
+  ) as batch:
+      # Batch import all Questions
+      for text in texts:
+          client.batch.add_data_object(
+              "Brain",
+              text
+          )
