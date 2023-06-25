@@ -18,6 +18,19 @@ app = FastAPI()
 
 document_folder = './files/'
 
+# Extract PDF Text
+def extract_file(file):
+  
+  loader = UnstructuredFileLoader(file)
+  documents = loader.load()
+  return documents
+
+# Create chucks
+def splitter(documents):
+
+  text_splitter = CharacterTextSplitter(chuck_size=800,  chuck_overlap=0)
+  texts = text_splitter.split_documents(documents)
+
 @app.get("/")
 async def root():
   return {"message": "Hello World"}
@@ -30,14 +43,18 @@ async def upload(file: UploadFile = File(...)):
     shutil.copyfileobj(file.file, buffer)
 
   # Extract PDF Text
-  loader = UnstructuredFileLoader(os.path.join(document_folder, file.filename))
-  documents = loader.load()
-  len(documents)
+  documents = extract_file(os.path.join(document_folder, file.filename))
+
+  # Create chunks using textsplitter
+  splitter(documents)
 
   # Convert and Store Vector Embeddings
+  
+
   # store(file)
   
-  return {"file_name": file.filename}
+  return {"file_name": file.filename, 
+          "len":len(documents)}
 
 # Convert PDF Data into Vector Embedding and Store in Vector DB
 # Create Embedding query
